@@ -17,6 +17,7 @@ if (!CLIENT_ID || !CLIENT_SECRET) {
   process.exit(1);
 }
 const REDIRECT_URI = process.env.REDIRECT_URI || `http://localhost:${PORT}/callback`;
+const BASE_URL = REDIRECT_URI.split('?')[0];
 
 const ADMIN_SECRET = process.env.ADMIN_SECRET;
 
@@ -67,7 +68,7 @@ app.get('/login', (req, res) => {
       response_type: 'code',
       client_id: CLIENT_ID,
       scope,
-      redirect_uri: REDIRECT_URI,
+      redirect_uri: BASE_URL,
       state,
     });
 
@@ -75,15 +76,14 @@ app.get('/login', (req, res) => {
 });
 
 app.get('/callback', async (req, res) => {
-  if (req.query.admin !== ADMIN_SECRET) return res.status(404).send('Not found');
-  const { code, state } = req.query;
+  const { code } = req.query;
   if (!code) return res.status(400).send('Missing code');
 
   try {
     const params = new URLSearchParams({
       grant_type: 'authorization_code',
       code,
-      redirect_uri: REDIRECT_URI,
+      redirect_uri: BASE_URL,
       client_id: CLIENT_ID,
       client_secret: CLIENT_SECRET,
     });
