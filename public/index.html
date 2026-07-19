@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>currently playing</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #121212;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      text-align: center;
+      padding: 2rem;
+    }
+    .not-playing {
+      color: #888;
+      font-size: 1.2rem;
+    }
+    .album-art {
+      width: 280px;
+      height: 280px;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.5);
+      margin-bottom: 1.5rem;
+    }
+    .track-name {
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin-bottom: .4rem;
+    }
+    .artists {
+      font-size: 1.1rem;
+      color: #b3b3b3;
+      margin-bottom: .6rem;
+    }
+    .album-name {
+      font-size: .9rem;
+      color: #727272;
+      margin-bottom: 1rem;
+    }
+    .progress-bar {
+      width: 280px;
+      height: 4px;
+      background: #333;
+      border-radius: 2px;
+      margin: .8rem auto;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: #1db954;
+      border-radius: 2px;
+      transition: width 1s linear;
+    }
+    .time {
+      display: flex;
+      justify-content: space-between;
+      width: 280px;
+      margin: 0 auto;
+      font-size: .75rem;
+      color: #727272;
+    }
+    .spotify-logo {
+      margin-top: 2rem;
+      width: 24px;
+      opacity: .4;
+    }
+    .status { color: #888; margin-top: 1rem; font-size: .9rem; }
+  </style>
+</head>
+<body>
+  <div class="container" id="app">
+    <p class="status" id="status">loading...</p>
+  </div>
+
+  <script>
+    const app = document.getElementById('app');
+
+    function formatTime(ms) {
+      const s = Math.floor(ms / 1000);
+      return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+    }
+
+    async function fetchCurrent() {
+      try {
+        const res = await fetch('/api/currently-playing');
+        if (!res.ok) throw new Error('Not authenticated');
+        const data = await res.json();
+        return data;
+      } catch {
+        return null;
+      }
+    }
+
+    function renderNotPlaying() {
+      app.innerHTML = `
+        <p class="not-playing">not playing anything right now ♪</p>
+      `;
+    }
+
+    function renderTrack(data) {
+      if (!data || !data.track) return renderNotPlaying();
+      const { track, progress_ms, is_playing } = data;
+      const pct = (progress_ms / track.duration_ms) * 100;
+
+      app.innerHTML = `
+        <img class="album-art" src="${track.album_image || ''}" alt="${track.album}" />
+        <div class="track-name">${track.name}</div>
+        <div class="artists">${track.artists.join(', ')}</div>
+        <div class="album-name">${track.album}</div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: ${pct}%"></div>
+        </div>
+        <div class="time">
+          <span>${formatTime(progress_ms)}</span>
+          <span>${formatTime(track.duration_ms)}</span>
+        </div>
+      `;
+    }
+
+    async function poll() {
+      const data = await fetchCurrent();
+      if (data) {
+        renderTrack(data);
+      } else {
+        app.innerHTML = `<p class="status">not playing anything right now</p>`;
+      }
+    }
+
+    poll();
+    setInterval(poll, 3000);
+  </script>
+</body>
+</html>
