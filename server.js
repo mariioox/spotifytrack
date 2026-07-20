@@ -2,9 +2,12 @@ require('dotenv').config();
 const express = require('express');
 const axios = require('axios');
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const TOKEN_FILE = path.join(__dirname, '.spotify-tokens.json');
 
 const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
@@ -20,9 +23,21 @@ const BASE_URL = REDIRECT_URI.split('?')[0];
 const ADMIN_SECRET = process.env.ADMIN_SECRET;
 
 let tokens = {};
+try {
+  if (fs.existsSync(TOKEN_FILE)) {
+    tokens = JSON.parse(fs.readFileSync(TOKEN_FILE, 'utf-8'));
+  }
+} catch (e) {
+  console.error('Failed to load tokens:', e.message);
+}
 
 function saveTokens(data) {
   tokens = data;
+  try {
+    fs.writeFileSync(TOKEN_FILE, JSON.stringify(data, null, 2));
+  } catch (e) {
+    console.error('Failed to save tokens:', e.message);
+  }
 }
 
 async function refreshAccessToken() {
