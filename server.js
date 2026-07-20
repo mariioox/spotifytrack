@@ -44,6 +44,7 @@ async function refreshAccessToken() {
 
     const res = await axios.post('https://accounts.spotify.com/api/token', params.toString(), {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      timeout: 5000,
     });
 
     tokens.access_token = res.data.access_token;
@@ -90,6 +91,7 @@ app.get('/callback', async (req, res) => {
 
     const tokenRes = await axios.post('https://accounts.spotify.com/api/token', params.toString(), {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      timeout: 5000,
     });
 
     saveTokens({
@@ -111,6 +113,7 @@ async function getCurrentlyPlaying() {
   try {
     const res = await axios.get('https://api.spotify.com/v1/me/player/currently-playing', {
       headers: { Authorization: `Bearer ${token}` },
+      timeout: 5000,
     });
 
     if (res.status === 204 || !res.data || !res.data.item) return null;
@@ -131,8 +134,12 @@ async function getCurrentlyPlaying() {
     };
   } catch (err) {
     if (err.response?.status === 401) {
+      console.log('Token expired, refreshing...');
       const newToken = await refreshAccessToken();
       if (newToken) return getCurrentlyPlaying();
+      console.log('Token refresh failed');
+    } else {
+      console.error('getCurrentlyPlaying error:', err.response?.data || err.message);
     }
     return null;
   }
