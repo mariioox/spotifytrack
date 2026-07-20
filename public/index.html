@@ -400,6 +400,22 @@
       const data = await fetchJSON('/api/currently-playing');
       if (data?.error === 'no_token') return renderLogin();
       if (data?.track) return renderTrack(data);
+      if (data?.error) {
+        app.innerHTML = `
+          <div class="header">
+            <div class="listening-for">listening to</div>
+            <div class="name">Patience</div>
+          </div>
+          <div class="not-playing-state">
+            <div class="not-playing-icon">⚙️</div>
+            <div class="not-playing-text" style="font-size:0.8rem;color:#444">
+              ${data.error}${data.detail ? ': ' + data.detail : ''}
+            </div>
+          </div>
+          <div class="footer">♫ spotify</div>
+        `;
+        return;
+      }
       renderNotPlaying();
     }
 

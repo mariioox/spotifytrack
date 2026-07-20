@@ -102,7 +102,7 @@ app.get('/callback', async (req, res) => {
 
 async function getCurrentlyPlaying() {
   const token = tokens.access_token;
-  if (!token) return null;
+  if (!token) return { error: 'no_token' };
 
   try {
     const res = await axios.get('https://api.spotify.com/v1/me/player/currently-playing', {
@@ -110,7 +110,8 @@ async function getCurrentlyPlaying() {
       timeout: 5000,
     });
 
-    if (res.status === 204 || !res.data || !res.data.item) return null;
+    if (res.status === 204) return { error: 'no_track_204' };
+    if (!res.data || !res.data.item) return { error: 'no_track_data', detail: !res.data ? 'no_data' : 'no_item' };
 
     const item = res.data.item;
     return {
@@ -131,11 +132,11 @@ async function getCurrentlyPlaying() {
       console.log('Token expired, refreshing...');
       const newToken = await refreshAccessToken();
       if (newToken) return getCurrentlyPlaying();
-      console.log('Token refresh failed');
-    } else {
-      console.error('getCurrentlyPlaying error:', err.response?.data || err.message);
+      return { error: 'refresh_failed' };
     }
-    return null;
+    const msg = err.response?.data || err.message;
+    console.error('getCurrentlyPlaying error:', msg);
+    return { error: 'api_error', detail: String(msg).slice(0, 200) };
   }
 }
 
@@ -150,7 +151,6 @@ app.get('/api/auth-url', (req, res) => {
 });
 
 app.get('/api/currently-playing', async (req, res) => {
-  if (!tokens.access_token) return res.json({ error: 'no_token' });
   const data = await getCurrentlyPlaying();
   res.json(data);
 });
