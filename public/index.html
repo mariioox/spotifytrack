@@ -5,19 +5,46 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Patience ♫</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+    :root {
+      --bg: #0a0a0a;
+      --fg: #fff;
+      --muted: #666;
+      --sub: #999;
+      --border: #222;
+      --glow: rgba(29,185,84,0.08);
+      --shadow: rgba(0,0,0,0.6);
+      --vinyl: #0a0a0a;
+      --spotify: #1db954;
+      --error: #444;
+    }
+
+    .light {
+      --bg: #f5f5f5;
+      --fg: #1a1a1a;
+      --muted: #999;
+      --sub: #777;
+      --border: #ddd;
+      --glow: rgba(29,185,84,0.06);
+      --shadow: rgba(0,0,0,0.1);
+      --vinyl: #f5f5f5;
+      --spotify: #1db954;
+      --error: #888;
+    }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: #0a0a0a;
-      color: #fff;
+      background: var(--bg);
+      color: var(--fg);
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
       overflow: hidden;
+      transition: background 0.4s, color 0.4s;
     }
 
     .bg-glow {
@@ -27,9 +54,33 @@
       width: 600px;
       height: 600px;
       transform: translate(-50%, -50%);
-      background: radial-gradient(circle, rgba(29,185,84,0.08) 0%, transparent 70%);
+      background: radial-gradient(circle, var(--glow) 0%, transparent 70%);
       pointer-events: none;
       z-index: 0;
+      transition: background 0.4s;
+    }
+
+    .theme-btn {
+      position: fixed;
+      top: 1.2rem;
+      right: 1.2rem;
+      z-index: 10;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+    }
+    .theme-btn:hover {
+      transform: scale(1.1);
+      border-color: var(--spotify);
     }
 
     .container {
@@ -37,11 +88,11 @@
       z-index: 1;
       text-align: center;
       padding: 2rem;
-      animation: fadeIn 0.8s ease-out;
+      width: 380px;
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
+      from { opacity: 0; transform: translateY(16px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
@@ -66,14 +117,20 @@
       100% { height: 4px; }
     }
 
+    @keyframes heartBeat {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+
     .header {
-      margin-bottom: 2rem;
+      margin-bottom: 1.8rem;
+      animation: fadeIn 0.8s ease-out;
     }
 
     .listening-for {
       font-size: 0.8rem;
-      font-weight: 400;
-      color: #666;
+      font-weight: 500;
+      color: var(--muted);
       text-transform: uppercase;
       letter-spacing: 4px;
       margin-bottom: 0.3rem;
@@ -89,27 +146,80 @@
       letter-spacing: -0.5px;
     }
 
+    .view {
+      animation: fadeIn 0.5s ease-out;
+    }
+
+    .view-hidden {
+      display: none;
+    }
+
+    .state-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+    .state-icon.float {
+      animation: float 3s ease-in-out infinite;
+      opacity: 0.4;
+    }
+    .state-icon.heart {
+      animation: heartBeat 2s ease-in-out infinite;
+      opacity: 0.6;
+    }
+
+    .state-text {
+      font-size: 1rem;
+      color: var(--muted);
+      font-weight: 400;
+      line-height: 1.7;
+      max-width: 280px;
+      margin: 0 auto;
+    }
+    .state-text .hl {
+      color: var(--spotify);
+      font-weight: 600;
+    }
+
+    .btn-spotify {
+      display: inline-block;
+      margin-top: 1.2rem;
+      padding: 0.75rem 2.2rem;
+      background: var(--spotify);
+      color: #000;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.9rem;
+      transition: all 0.25s;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-spotify:hover {
+      opacity: 0.85;
+      transform: scale(1.03);
+    }
+
     .art-wrapper {
       position: relative;
-      width: 280px;
-      height: 280px;
-      margin: 0 auto 1.5rem;
+      width: 250px;
+      height: 250px;
+      margin: 0 auto 1.2rem;
     }
 
     .art-wrapper::before {
       content: '';
       position: absolute;
-      inset: -20px;
+      inset: -16px;
       background: conic-gradient(from 0deg, #1db954, #1ed760, #1db954, #169c46, #1db954);
       border-radius: 50%;
-      opacity: 0.3;
+      opacity: 0.25;
       animation: spin 8s linear infinite;
-      filter: blur(10px);
+      filter: blur(8px);
     }
-
     .art-wrapper.paused::before {
       animation: none;
-      opacity: 0.1;
+      opacity: 0.08;
     }
 
     .album-art {
@@ -118,11 +228,10 @@
       height: 100%;
       border-radius: 50%;
       object-fit: cover;
-      box-shadow: 0 0 40px rgba(29,185,84,0.15), 0 8px 32px rgba(0,0,0,0.6);
-      animation: spin 12s linear infinite;
+      box-shadow: 0 0 30px var(--glow), 0 6px 24px var(--shadow);
+      animation: spin 10s linear infinite;
       z-index: 1;
     }
-
     .album-art.paused {
       animation: none;
     }
@@ -132,110 +241,23 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 40px;
-      height: 40px;
-      background: #0a0a0a;
+      width: 36px;
+      height: 36px;
+      background: var(--vinyl);
       border-radius: 50%;
-      border: 3px solid #333;
+      border: 3px solid var(--border);
       z-index: 2;
       display: flex;
       align-items: center;
       justify-content: center;
+      transition: background 0.4s, border-color 0.4s;
     }
-
     .vinyl-center::after {
       content: '';
       width: 10px;
       height: 10px;
-      background: #1db954;
+      background: var(--spotify);
       border-radius: 50%;
-    }
-
-    .track-name {
-      font-size: 1.5rem;
-      font-weight: 700;
-      margin-bottom: 0.3rem;
-      animation: fadeIn 0.5s ease-out;
-    }
-
-    .artists {
-      font-size: 1.05rem;
-      color: #999;
-      margin-bottom: 0.4rem;
-    }
-
-    .album-name {
-      font-size: 0.85rem;
-      color: #666;
-      margin-bottom: 0.5rem;
-    }
-
-    .progress-bar {
-      width: 300px;
-      height: 4px;
-      background: #222;
-      border-radius: 4px;
-      margin: 1rem auto;
-      overflow: hidden;
-      cursor: pointer;
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #1db954, #1ed760);
-      border-radius: 4px;
-      transition: width 1s linear;
-      position: relative;
-    }
-
-    .progress-fill::after {
-      content: '';
-      position: absolute;
-      right: -4px;
-      top: -3px;
-      width: 10px;
-      height: 10px;
-      background: #fff;
-      border-radius: 50%;
-      opacity: 0;
-      transition: opacity 0.2s;
-    }
-
-    .progress-bar:hover .progress-fill::after {
-      opacity: 1;
-    }
-
-    .time {
-      display: flex;
-      justify-content: space-between;
-      width: 300px;
-      margin: 0 auto;
-      font-size: 0.75rem;
-      color: #555;
-      font-weight: 500;
-    }
-
-    .not-playing-state {
-      animation: fadeIn 0.8s ease-out;
-    }
-
-    .not-playing-icon {
-      font-size: 3rem;
-      margin-bottom: 1rem;
-      opacity: 0.3;
-      animation: float 3s ease-in-out infinite;
-    }
-
-    .not-playing-text {
-      font-size: 1rem;
-      color: #555;
-      font-weight: 300;
-      line-height: 1.6;
-    }
-
-    .not-playing-text span {
-      color: #1db954;
-      font-weight: 600;
     }
 
     .equalizer {
@@ -243,52 +265,213 @@
       align-items: center;
       justify-content: center;
       gap: 4px;
-      height: 24px;
-      margin-top: 1rem;
-      opacity: 0.5;
+      height: 22px;
+      margin-top: 0.5rem;
+      opacity: 0.4;
     }
-
     .equalizer.active .eq-bar {
       animation: bar 0.6s ease-in-out infinite alternate;
     }
-
     .eq-bar {
       width: 3px;
-      background: #1db954;
+      background: var(--spotify);
       border-radius: 2px;
       height: 4px;
     }
-
     .eq-bar:nth-child(1) { animation-delay: 0s; }
     .eq-bar:nth-child(2) { animation-delay: 0.1s; }
     .eq-bar:nth-child(3) { animation-delay: 0.2s; }
     .eq-bar:nth-child(4) { animation-delay: 0.3s; }
     .eq-bar:nth-child(5) { animation-delay: 0.4s; }
 
-    .footer {
-      margin-top: 2rem;
-      font-size: 0.7rem;
-      color: #333;
-      letter-spacing: 2px;
-      text-transform: uppercase;
+    .track-name {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin: 0.6rem 0 0.2rem;
+      line-height: 1.3;
     }
 
-    .load-state {
-      animation: pulse 1.5s ease-in-out infinite;
+    .artists {
+      font-size: 0.95rem;
+      color: var(--sub);
+      margin-bottom: 0.2rem;
+    }
+    .album-name {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .progress-bar {
+      width: 280px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 4px;
+      margin: 0.8rem auto;
+      overflow: hidden;
+      cursor: pointer;
+      transition: background 0.4s;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #1db954, #1ed760);
+      border-radius: 4px;
+      transition: width 1s linear;
+      position: relative;
+    }
+    .progress-fill::after {
+      content: '';
+      position: absolute;
+      right: -4px;
+      top: -3px;
+      width: 10px;
+      height: 10px;
+      background: var(--fg);
+      border-radius: 50%;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .progress-bar:hover .progress-fill::after {
+      opacity: 1;
+    }
+
+    .time {
+      display: flex;
+      justify-content: space-between;
+      width: 280px;
+      margin: 0 auto;
+      font-size: 0.7rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .footer {
+      margin-top: 1.5rem;
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      opacity: 0.5;
+    }
+    .footer.paused {
+      color: var(--sub);
+      opacity: 0.7;
+    }
+
+    .error-msg {
+      margin-top: 1rem;
+      font-size: 0.75rem;
+      color: var(--error);
+      line-height: 1.4;
+      max-width: 300px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .equalizer-placeholder {
+      height: 22px;
+      margin-top: 0.5rem;
     }
   </style>
 </head>
 <body>
   <div class="bg-glow"></div>
-  <div class="container" id="app">
+  <button class="theme-btn" id="themeBtn" title="Toggle theme">🌙</button>
+
+  <div class="container">
     <div class="header">
-      <div class="listening-for">listening to</div>
+      <div class="listening-for">🧸 listening to</div>
       <div class="name">Patience</div>
+    </div>
+
+    <!-- Login -->
+    <div id="loginView" class="view view-hidden">
+      <span class="state-icon heart">🔗</span>
+      <p class="state-text">
+        <span class="hl">Patience</span> hasn't connected Spotify yet
+      </p>
+      <a id="loginBtn" class="btn-spotify">Login with Spotify</a>
+      <div class="equalizer-placeholder"></div>
+    </div>
+
+    <!-- Not Playing -->
+    <div id="notPlayingView" class="view view-hidden">
+      <span class="state-icon float">🎵</span>
+      <p class="state-text">
+        <span class="hl">Patience</span> is taking a little break from music right now 🧸
+      </p>
+      <div class="equalizer">
+        <div class="eq-bar" style="height:6px"></div>
+        <div class="eq-bar" style="height:14px"></div>
+        <div class="eq-bar" style="height:10px"></div>
+        <div class="eq-bar" style="height:18px"></div>
+        <div class="eq-bar" style="height:8px"></div>
+      </div>
+    </div>
+
+    <!-- Error -->
+    <div id="errorView" class="view view-hidden">
+      <span class="state-icon">⚙️</span>
+      <p class="state-text" id="errorText"></p>
+    </div>
+
+    <!-- Track -->
+    <div id="trackView" class="view view-hidden">
+      <div class="art-wrapper" id="artWrapper">
+        <img id="albumArt" class="album-art" alt="album art" />
+        <div class="vinyl-center"></div>
+      </div>
+      <div class="equalizer" id="trackEqualizer">
+        <div class="eq-bar" style="height:6px"></div>
+        <div class="eq-bar" style="height:14px"></div>
+        <div class="eq-bar" style="height:10px"></div>
+        <div class="eq-bar" style="height:18px"></div>
+        <div class="eq-bar" style="height:8px"></div>
+      </div>
+      <div class="track-name" id="trackName"></div>
+      <div class="artists" id="trackArtists"></div>
+      <div class="album-name" id="trackAlbum"></div>
+      <div class="progress-bar" id="progressBar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="time">
+        <span id="currentTime">0:00</span>
+        <span id="totalTime">0:00</span>
+      </div>
+      <div class="footer" id="trackFooter">♫ spotify</div>
+      <div class="error-msg" id="trackError"></div>
     </div>
   </div>
 
   <script>
-    const app = document.getElementById('app');
+    (function() {
+      const STORAGE_KEY = 'patience-theme';
+      const html = document.documentElement;
+      const themeBtn = document.getElementById('themeBtn');
+
+      function setTheme(dark) {
+        html.classList.toggle('light', !dark);
+        themeBtn.textContent = dark ? '🌙' : '☀️';
+        localStorage.setItem(STORAGE_KEY, dark ? 'dark' : 'light');
+      }
+
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved === 'light') setTheme(false);
+      else if (saved === 'dark') setTheme(true);
+      else setTheme(window.matchMedia('(prefers-color-scheme:dark)').matches);
+
+      themeBtn.addEventListener('click', () => {
+        setTheme(html.classList.contains('light'));
+      });
+    })();
+
+    const $ = id => document.getElementById(id);
+    const views = ['loginView', 'notPlayingView', 'errorView', 'trackView'];
+
+    function showView(id) {
+      views.forEach(v => $(v).classList.add('view-hidden'));
+      $(id).classList.remove('view-hidden');
+    }
 
     function formatTime(ms) {
       if (!ms && ms !== 0) return '0:00';
@@ -309,116 +492,92 @@
       }
     }
 
+    let currentTrackId = null;
+
     function renderLogin() {
+      showView('loginView');
       fetchJSON('/api/auth-url').then(r => {
-        const url = r?.url || '/login';
-        app.innerHTML = `
-          <div class="header">
-            <div class="listening-for">listening to</div>
-            <div class="name">Patience</div>
-          </div>
-          <div class="not-playing-state">
-            <div class="not-playing-icon">🔗</div>
-            <div class="not-playing-text">
-              <span>Patience</span> hasn't connected Spotify yet
-            </div>
-            <a href="${url}"
-               style="display:inline-block;margin-top:1.2rem;padding:0.7rem 2rem;background:#1db954;color:#000;border-radius:50px;text-decoration:none;font-weight:600;font-size:0.9rem;transition:opacity 0.2s"
-               onmouseover="this.style.opacity=0.85" onmouseout="this.style.opacity=1">
-              Login with Spotify
-            </a>
-          </div>
-          <div class="footer">♫ spotify</div>
-        `;
+        $('loginBtn').href = r?.url || '/login';
       });
     }
 
     function renderNotPlaying() {
-      app.innerHTML = `
-        <div class="header">
-          <div class="listening-for">listening to</div>
-          <div class="name">Patience</div>
-        </div>
-        <div class="not-playing-state">
-          <div class="not-playing-icon">🎵</div>
-          <div class="not-playing-text">
-            <span>Patience</span> isn't playing anything right now
-          </div>
-          <div class="equalizer">
-            <div class="eq-bar" style="height:6px"></div>
-            <div class="eq-bar" style="height:14px"></div>
-            <div class="eq-bar" style="height:10px"></div>
-            <div class="eq-bar" style="height:18px"></div>
-            <div class="eq-bar" style="height:8px"></div>
-          </div>
-        </div>
-        <div class="footer">♫ spotify</div>
-      `;
+      showView('notPlayingView');
+      currentTrackId = null;
+    }
+
+    function renderError(msg) {
+      showView('errorView');
+      $('errorText').textContent = msg;
+      currentTrackId = null;
     }
 
     function renderTrack(data) {
       if (!data || !data.track) return renderNotPlaying();
       const { track, progress_ms, is_playing } = data;
-      const pct = Math.min((progress_ms / track.duration_ms) * 100, 100);
       const paused = is_playing === false;
 
-      app.innerHTML = `
-        <div class="header">
-          <div class="listening-for">listening to</div>
-          <div class="name">Patience</div>
-        </div>
-        <div class="art-wrapper ${paused ? 'paused' : ''}">
-          <img class="album-art ${paused ? 'paused' : ''}"
-               src="${track.album_image || ''}"
-               alt="${track.album}"
-               onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22280%22 height=%22280%22><rect fill=%22222%22 width=%22280%22 height=%22280%22/></svg>'"
-          />
-          <div class="vinyl-center"></div>
-        </div>
-        <div class="equalizer ${is_playing ? 'active' : ''}">
-          <div class="eq-bar" style="height:6px"></div>
-          <div class="eq-bar" style="height:14px"></div>
-          <div class="eq-bar" style="height:10px"></div>
-          <div class="eq-bar" style="height:18px"></div>
-          <div class="eq-bar" style="height:8px"></div>
-        </div>
-        <div class="track-name">${track.name}</div>
-        <div class="artists">${track.artists.join(', ')}</div>
-        <div class="album-name">${track.album}</div>
-        <div class="progress-bar">
-          <div class="progress-fill" style="width: ${pct}%"></div>
-        </div>
-        <div class="time">
-          <span>${formatTime(progress_ms)}</span>
-          <span>${formatTime(track.duration_ms)}</span>
-        </div>
-        ${!paused ? `<div class="footer">♫ spotify</div>` : `<div class="footer" style="color:#555">paused</div>`}
-      `;
+      if (track.id !== currentTrackId) {
+        currentTrackId = track.id;
+        showView('trackView');
+
+        const wrapper = $('artWrapper');
+        wrapper.classList.toggle('paused', paused);
+
+        const art = $('albumArt');
+        art.classList.toggle('paused', paused);
+        if (track.album_image) {
+          art.src = track.album_image;
+          art.onerror = function() {
+            this.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Crect fill='%23222' width='250' height='250'/%3E%3C/svg%3E";
+          };
+        }
+
+        $('trackEqualizer').className = 'equalizer' + (is_playing ? ' active' : '');
+        $('trackName').textContent = track.name;
+        $('trackArtists').textContent = track.artists.join(', ');
+        $('trackAlbum').textContent = track.album;
+        $('totalTime').textContent = formatTime(track.duration_ms);
+
+        if (paused) {
+          $('trackFooter').textContent = '⏸ paused';
+          $('trackFooter').className = 'footer paused';
+        } else {
+          $('trackFooter').textContent = '♫ spotify';
+          $('trackFooter').className = 'footer';
+        }
+      } else {
+        const wrapper = $('artWrapper');
+        wrapper.classList.toggle('paused', paused);
+        $('albumArt').classList.toggle('paused', paused);
+        $('trackEqualizer').className = 'equalizer' + (is_playing ? ' active' : '');
+        if (paused) {
+          $('trackFooter').textContent = '⏸ paused';
+          $('trackFooter').className = 'footer paused';
+        } else {
+          $('trackFooter').textContent = '♫ spotify';
+          $('trackFooter').className = 'footer';
+        }
+      }
+
+      $('progressFill').style.width = Math.min((progress_ms / track.duration_ms) * 100, 100) + '%';
+      $('currentTime').textContent = formatTime(progress_ms);
+      $('trackError').textContent = '';
     }
 
     async function poll() {
       const data = await fetchJSON('/api/currently-playing');
-      if (data?.error === 'no_token') return renderLogin();
-      if (data?.track) return renderTrack(data);
-      if (data?.error) {
-        app.innerHTML = `
-          <div class="header">
-            <div class="listening-for">listening to</div>
-            <div class="name">Patience</div>
-          </div>
-          <div class="not-playing-state">
-            <div class="not-playing-icon">⚙️</div>
-            <div class="not-playing-text" style="font-size:0.8rem;color:#444">
-              ${data.error}${data.detail ? ': ' + data.detail : ''}
-            </div>
-          </div>
-          <div class="footer">♫ spotify</div>
-        `;
-        return;
+      if (!data) return renderError('Could not reach the server 🧸');
+      if (data.error === 'no_token') return renderLogin();
+      if (data.track) return renderTrack(data);
+      if (data.error && data.error !== 'no_track_204' && data.error !== 'no_track_data') {
+        const detail = data.detail ? data.detail : '';
+        return renderError(detail || data.error);
       }
       renderNotPlaying();
     }
 
+    showView('loginView');
     poll();
     setInterval(poll, 3000);
   </script>
