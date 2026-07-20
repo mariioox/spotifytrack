@@ -285,7 +285,6 @@
       <div class="listening-for">listening to</div>
       <div class="name">Patience</div>
     </div>
-    <p class="load-state" style="color:#555;font-size:0.9rem">loading...</p>
   </div>
 
   <script>
@@ -297,18 +296,41 @@
       return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
     }
 
-    async function fetchCurrent() {
+    async function fetchJSON(url) {
       try {
-        const controller = new AbortController();
-        const id = setTimeout(() => controller.abort(), 5000);
-        const res = await fetch('/api/currently-playing', { signal: controller.signal });
+        const ctrl = new AbortController();
+        const id = setTimeout(() => ctrl.abort(), 5000);
+        const res = await fetch(url, { signal: ctrl.signal });
         clearTimeout(id);
         if (!res.ok) return null;
-        const data = await res.json();
-        return data;
+        return await res.json();
       } catch {
         return null;
       }
+    }
+
+    function renderLogin() {
+      fetchJSON('/api/auth-url').then(r => {
+        const url = r?.url || '/login';
+        app.innerHTML = `
+          <div class="header">
+            <div class="listening-for">listening to</div>
+            <div class="name">Patience</div>
+          </div>
+          <div class="not-playing-state">
+            <div class="not-playing-icon">🔗</div>
+            <div class="not-playing-text">
+              <span>Patience</span> hasn't connected Spotify yet
+            </div>
+            <a href="${url}"
+               style="display:inline-block;margin-top:1.2rem;padding:0.7rem 2rem;background:#1db954;color:#000;border-radius:50px;text-decoration:none;font-weight:600;font-size:0.9rem;transition:opacity 0.2s"
+               onmouseover="this.style.opacity=0.85" onmouseout="this.style.opacity=1">
+              Login with Spotify
+            </a>
+          </div>
+          <div class="footer">♫ spotify</div>
+        `;
+      });
     }
 
     function renderNotPlaying() {
@@ -375,12 +397,10 @@
     }
 
     async function poll() {
-      const data = await fetchCurrent();
-      if (data) {
-        renderTrack(data);
-      } else {
-        renderNotPlaying();
-      }
+      const data = await fetchJSON('/api/currently-playing');
+      if (data?.error === 'no_token') return renderLogin();
+      if (data?.track) return renderTrack(data);
+      renderNotPlaying();
     }
 
     poll();

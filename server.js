@@ -2,12 +2,9 @@ require('dotenv').config();
 const express = require('express');
 const axios = require('axios');
 const crypto = require('crypto');
-const fs = require('fs');
-const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const TOKEN_FILE = path.join(__dirname, '.spotify-tokens.json');
 
 const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
@@ -23,13 +20,9 @@ const BASE_URL = REDIRECT_URI.split('?')[0];
 const ADMIN_SECRET = process.env.ADMIN_SECRET;
 
 let tokens = {};
-if (fs.existsSync(TOKEN_FILE)) {
-  tokens = JSON.parse(fs.readFileSync(TOKEN_FILE, 'utf-8'));
-}
 
 function saveTokens(data) {
   tokens = data;
-  fs.writeFileSync(TOKEN_FILE, JSON.stringify(data, null, 2));
 }
 
 async function refreshAccessToken() {
@@ -146,7 +139,18 @@ async function getCurrentlyPlaying() {
   }
 }
 
+app.get('/api/status', (req, res) => {
+  res.json({ authenticated: !!tokens.access_token });
+});
+
+app.get('/api/auth-url', (req, res) => {
+  if (!ADMIN_SECRET) return res.status(500).json({ error: 'ADMIN_SECRET not configured' });
+  const host = process.env.RENDER ? process.env.RENDER_EXTERNAL_URL : `http://localhost:${PORT}`;
+  res.json({ url: `${host}/login?admin=${ADMIN_SECRET}` });
+});
+
 app.get('/api/currently-playing', async (req, res) => {
+  if (!tokens.access_token) return res.json({ error: 'no_token' });
   const data = await getCurrentlyPlaying();
   res.json(data);
 });
