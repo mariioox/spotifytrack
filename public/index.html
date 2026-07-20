@@ -13,7 +13,7 @@
       --muted: #666;
       --sub: #999;
       --border: #222;
-      --glow: rgba(29,185,84,0.08);
+      --glow-color: 29,185,84;
       --shadow: rgba(0,0,0,0.6);
       --vinyl: #0a0a0a;
       --spotify: #1db954;
@@ -26,10 +26,8 @@
       --muted: #999;
       --sub: #777;
       --border: #ddd;
-      --glow: rgba(29,185,84,0.06);
       --shadow: rgba(0,0,0,0.1);
       --vinyl: #f5f5f5;
-      --spotify: #1db954;
       --error: #888;
     }
 
@@ -44,20 +42,46 @@
       align-items: center;
       min-height: 100vh;
       overflow: hidden;
-      transition: background 0.4s, color 0.4s;
+      transition: background 0.6s ease, color 0.4s;
     }
 
     .bg-glow {
       position: fixed;
       top: 50%;
       left: 50%;
-      width: 600px;
-      height: 600px;
+      width: 90vmin;
+      height: 90vmin;
       transform: translate(-50%, -50%);
-      background: radial-gradient(circle, var(--glow) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(var(--glow-color),0.1) 0%, transparent 65%);
       pointer-events: none;
       z-index: 0;
-      transition: background 0.4s;
+      transition: background 1s ease;
+    }
+
+    .bg-glow-2 {
+      position: fixed;
+      top: 20%;
+      left: 70%;
+      width: 40vmin;
+      height: 40vmin;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(circle, rgba(var(--glow-color),0.05) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+      transition: background 1.5s ease;
+    }
+
+    .bg-glow-3 {
+      position: fixed;
+      top: 80%;
+      left: 30%;
+      width: 35vmin;
+      height: 35vmin;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(circle, rgba(var(--glow-color),0.04) 0%, transparent 55%);
+      pointer-events: none;
+      z-index: 0;
+      transition: background 2s ease;
     }
 
     .theme-btn {
@@ -108,13 +132,7 @@
 
     @keyframes float {
       0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-8px); }
-    }
-
-    @keyframes bar {
-      0% { height: 4px; }
-      50% { height: 20px; }
-      100% { height: 4px; }
+      50% { transform: translateY(-10px); }
     }
 
     @keyframes heartBeat {
@@ -122,8 +140,23 @@
       50% { transform: scale(1.08); }
     }
 
+    @keyframes breathe {
+      0%, 100% { transform: scale(1); opacity: 0.25; }
+      50% { transform: scale(1.02); opacity: 0.35; }
+    }
+
+    @keyframes trackIn {
+      0% { opacity: 0; transform: scale(0.92); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes shimmer {
+      0% { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+
     .header {
-      margin-bottom: 1.8rem;
+      margin-bottom: 1.5rem;
       animation: fadeIn 0.8s ease-out;
     }
 
@@ -204,22 +237,34 @@
       position: relative;
       width: 250px;
       height: 250px;
-      margin: 0 auto 1.2rem;
+      margin: 0 auto 1rem;
+      animation: trackIn 0.6s ease-out;
     }
 
     .art-wrapper::before {
       content: '';
       position: absolute;
       inset: -16px;
-      background: conic-gradient(from 0deg, #1db954, #1ed760, #1db954, #169c46, #1db954);
+      background: conic-gradient(from 0deg, rgba(var(--glow-color),0.4), rgba(var(--glow-color),0.2), rgba(var(--glow-color),0.4), rgba(var(--glow-color),0.1), rgba(var(--glow-color),0.4));
       border-radius: 50%;
-      opacity: 0.25;
+      opacity: 0.3;
       animation: spin 8s linear infinite;
-      filter: blur(8px);
+      filter: blur(12px);
+      transition: background 0.8s ease;
     }
     .art-wrapper.paused::before {
       animation: none;
       opacity: 0.08;
+    }
+
+    .art-wrapper::after {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 50%;
+      border: 1px solid rgba(var(--glow-color),0.15);
+      z-index: 2;
+      pointer-events: none;
     }
 
     .album-art {
@@ -228,12 +273,29 @@
       height: 100%;
       border-radius: 50%;
       object-fit: cover;
-      box-shadow: 0 0 30px var(--glow), 0 6px 24px var(--shadow);
+      box-shadow: 0 0 40px rgba(var(--glow-color),0.15), 0 8px 32px var(--shadow);
       animation: spin 10s linear infinite;
       z-index: 1;
     }
     .album-art.paused {
       animation: none;
+    }
+
+    .vinyl-grooves {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      z-index: 2;
+      pointer-events: none;
+      background: repeating-radial-gradient(circle at center,
+        transparent 0px,
+        transparent 8px,
+        rgba(0,0,0,0.04) 8px,
+        rgba(0,0,0,0.04) 9px
+      );
     }
 
     .vinyl-center {
@@ -246,7 +308,7 @@
       background: var(--vinyl);
       border-radius: 50%;
       border: 3px solid var(--border);
-      z-index: 2;
+      z-index: 3;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -267,34 +329,49 @@
       gap: 4px;
       height: 22px;
       margin-top: 0.5rem;
-      opacity: 0.4;
-    }
-    .equalizer.active .eq-bar {
-      animation: bar 0.6s ease-in-out infinite alternate;
+      opacity: 0.5;
     }
     .eq-bar {
       width: 3px;
       background: var(--spotify);
-      border-radius: 2px;
+      border-radius: 3px;
       height: 4px;
+      transition: height 0.3s ease;
     }
-    .eq-bar:nth-child(1) { animation-delay: 0s; }
-    .eq-bar:nth-child(2) { animation-delay: 0.1s; }
-    .eq-bar:nth-child(3) { animation-delay: 0.2s; }
-    .eq-bar:nth-child(4) { animation-delay: 0.3s; }
-    .eq-bar:nth-child(5) { animation-delay: 0.4s; }
+
+    .track-info {
+      margin: 0.6rem 0 0.2rem;
+      position: relative;
+    }
 
     .track-name {
       font-size: 1.3rem;
       font-weight: 700;
-      margin: 0.6rem 0 0.2rem;
       line-height: 1.3;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .track-name-wrap {
+      display: inline-block;
+      animation: none;
+      white-space: nowrap;
+    }
+    .track-name-wrap.scrolling {
+      animation: scrollText 12s linear infinite;
+    }
+
+    @keyframes scrollText {
+      0% { transform: translateX(0); }
+      10% { transform: translateX(0); }
+      80% { transform: translateX(calc(-100% + 200px)); }
+      100% { transform: translateX(calc(-100% + 200px)); }
     }
 
     .artists {
       font-size: 0.95rem;
       color: var(--sub);
-      margin-bottom: 0.2rem;
+      margin-bottom: 0.15rem;
     }
     .album-name {
       font-size: 0.8rem;
@@ -307,7 +384,7 @@
       height: 4px;
       background: var(--border);
       border-radius: 4px;
-      margin: 0.8rem auto;
+      margin: 0.7rem auto;
       overflow: hidden;
       cursor: pointer;
       transition: background 0.4s;
@@ -316,7 +393,6 @@
       height: 100%;
       background: linear-gradient(90deg, #1db954, #1ed760);
       border-radius: 4px;
-      transition: width 1s linear;
       position: relative;
     }
     .progress-fill::after {
@@ -346,7 +422,7 @@
     }
 
     .footer {
-      margin-top: 1.5rem;
+      margin-top: 1.2rem;
       font-size: 0.65rem;
       color: var(--muted);
       letter-spacing: 2px;
@@ -376,6 +452,8 @@
 </head>
 <body>
   <div class="bg-glow"></div>
+  <div class="bg-glow-2"></div>
+  <div class="bg-glow-3"></div>
   <button class="theme-btn" id="themeBtn" title="Toggle theme">🌙</button>
 
   <div class="container">
@@ -419,6 +497,7 @@
     <div id="trackView" class="view view-hidden">
       <div class="art-wrapper" id="artWrapper">
         <img id="albumArt" class="album-art" alt="album art" />
+        <div class="vinyl-grooves"></div>
         <div class="vinyl-center"></div>
       </div>
       <div class="equalizer" id="trackEqualizer">
@@ -428,7 +507,9 @@
         <div class="eq-bar" style="height:18px"></div>
         <div class="eq-bar" style="height:8px"></div>
       </div>
-      <div class="track-name" id="trackName"></div>
+      <div class="track-info">
+        <div class="track-name" id="trackName"></div>
+      </div>
       <div class="artists" id="trackArtists"></div>
       <div class="album-name" id="trackAlbum"></div>
       <div class="progress-bar" id="progressBar">
@@ -493,9 +574,104 @@
     }
 
     let currentTrackId = null;
+    let trackDuration = 0;
+    let localProgress = 0;
+    let progressBase = 0;
+    let progressTime = 0;
+    let isPlayingLocally = false;
+    let rafId = null;
+
+    function startLocalProgress(progress_ms, timestamp) {
+      progressBase = progress_ms;
+      progressTime = timestamp || Date.now();
+      isPlayingLocally = true;
+      if (rafId) cancelAnimationFrame(rafId);
+      tickProgress();
+    }
+
+    function stopLocalProgress() {
+      isPlayingLocally = false;
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+    }
+
+    function tickProgress() {
+      if (!isPlayingLocally) return;
+      const elapsed = Date.now() - progressTime;
+      localProgress = progressBase + elapsed;
+      if (localProgress >= trackDuration) {
+        localProgress = trackDuration;
+      }
+      const pct = trackDuration ? Math.min((localProgress / trackDuration) * 100, 100) : 0;
+      $('progressFill').style.width = pct + '%';
+      $('currentTime').textContent = formatTime(localProgress);
+      if (localProgress >= trackDuration) {
+        stopLocalProgress();
+        return;
+      }
+      rafId = requestAnimationFrame(tickProgress);
+    }
+
+    function extractAlbumColor(src) {
+      if (!src) return;
+      const img = new Image();
+      img.crossOrigin = 'Anonymous';
+      img.onload = function() {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = 10;
+          canvas.height = 10;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, 10, 10);
+          const d = ctx.getImageData(0, 0, 10, 10).data;
+          let r = 0, g = 0, b = 0;
+          for (let i = 0; i < d.length; i += 4) {
+            r += d[i]; g += d[i+1]; b += d[i+2];
+          }
+          const len = d.length / 4;
+          r = Math.round(r / len);
+          g = Math.round(g / len);
+          b = Math.round(b / len);
+          document.documentElement.style.setProperty('--glow-color', `${r},${g},${b}`);
+        } catch(e) {}
+      };
+      img.src = src;
+    }
+
+    function setupMarquee() {
+      const el = $('trackName');
+      const wrap = document.createElement('span');
+      wrap.className = 'track-name-wrap';
+      while (el.firstChild) wrap.appendChild(el.firstChild);
+      el.appendChild(wrap);
+      requestAnimationFrame(() => {
+        if (wrap.scrollWidth > el.clientWidth) {
+          wrap.classList.add('scrolling');
+        }
+      });
+    }
+
+    function setupVisualizer() {
+      const bars = $('trackEqualizer').querySelectorAll('.eq-bar');
+      function animateBars() {
+        bars.forEach(bar => {
+          if (isPlayingLocally && localProgress < trackDuration) {
+            bar.style.height = (4 + Math.random() * 18) + 'px';
+          } else {
+            bar.style.height = '4px';
+          }
+        });
+        setTimeout(animateBars, 200 + Math.random() * 100);
+      }
+      animateBars();
+    }
 
     function renderLogin() {
       showView('loginView');
+      stopLocalProgress();
+      currentTrackId = null;
       fetchJSON('/api/auth-url').then(r => {
         $('loginBtn').href = r?.url || '/login';
       });
@@ -503,12 +679,14 @@
 
     function renderNotPlaying() {
       showView('notPlayingView');
+      stopLocalProgress();
       currentTrackId = null;
     }
 
     function renderError(msg) {
       showView('errorView');
       $('errorText').textContent = msg;
+      stopLocalProgress();
       currentTrackId = null;
     }
 
@@ -516,53 +694,51 @@
       if (!data || !data.track) return renderNotPlaying();
       const { track, progress_ms, is_playing } = data;
       const paused = is_playing === false;
+      trackDuration = track.duration_ms;
 
       if (track.id !== currentTrackId) {
         currentTrackId = track.id;
         showView('trackView');
 
-        const wrapper = $('artWrapper');
-        wrapper.classList.toggle('paused', paused);
-
+        $('artWrapper').classList.toggle('paused', paused);
         const art = $('albumArt');
         art.classList.toggle('paused', paused);
         if (track.album_image) {
           art.src = track.album_image;
+          extractAlbumColor(track.album_image);
           art.onerror = function() {
             this.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Crect fill='%23222' width='250' height='250'/%3E%3C/svg%3E";
           };
         }
-
         $('trackEqualizer').className = 'equalizer' + (is_playing ? ' active' : '');
         $('trackName').textContent = track.name;
+        setupMarquee();
         $('trackArtists').textContent = track.artists.join(', ');
         $('trackAlbum').textContent = track.album;
         $('totalTime').textContent = formatTime(track.duration_ms);
+        $('trackFooter').textContent = paused ? '⏸ paused' : '♫ spotify';
+        $('trackFooter').className = 'footer' + (paused ? ' paused' : '');
 
-        if (paused) {
-          $('trackFooter').textContent = '⏸ paused';
-          $('trackFooter').className = 'footer paused';
-        } else {
-          $('trackFooter').textContent = '♫ spotify';
-          $('trackFooter').className = 'footer';
-        }
+        setupVisualizer();
       } else {
-        const wrapper = $('artWrapper');
-        wrapper.classList.toggle('paused', paused);
+        $('artWrapper').classList.toggle('paused', paused);
         $('albumArt').classList.toggle('paused', paused);
         $('trackEqualizer').className = 'equalizer' + (is_playing ? ' active' : '');
-        if (paused) {
-          $('trackFooter').textContent = '⏸ paused';
-          $('trackFooter').className = 'footer paused';
-        } else {
-          $('trackFooter').textContent = '♫ spotify';
-          $('trackFooter').className = 'footer';
-        }
+        $('trackFooter').textContent = paused ? '⏸ paused' : '♫ spotify';
+        $('trackFooter').className = 'footer' + (paused ? ' paused' : '');
       }
 
-      $('progressFill').style.width = Math.min((progress_ms / track.duration_ms) * 100, 100) + '%';
-      $('currentTime').textContent = formatTime(progress_ms);
       $('trackError').textContent = '';
+
+      if (is_playing) {
+        startLocalProgress(progress_ms, Date.now());
+      } else {
+        stopLocalProgress();
+        localProgress = progress_ms;
+        const pct = trackDuration ? Math.min((progress_ms / trackDuration) * 100, 100) : 0;
+        $('progressFill').style.width = pct + '%';
+        $('currentTime').textContent = formatTime(progress_ms);
+      }
     }
 
     async function poll() {
