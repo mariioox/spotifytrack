@@ -16,7 +16,8 @@ if (!CLIENT_ID || !CLIENT_SECRET) {
   console.error('Missing SPOTIFY_CLIENT_ID or SPOTIFY_CLIENT_SECRET in .env');
   process.exit(1);
 }
-const REDIRECT_URI = process.env.REDIRECT_URI || `http://localhost:${PORT}/callback`;
+const REDIRECT_URI = process.env.REDIRECT_URI ||
+  (process.env.RENDER ? `${process.env.RENDER_EXTERNAL_URL}/callback` : `http://localhost:${PORT}/callback`);
 const BASE_URL = REDIRECT_URI.split('?')[0];
 
 const ADMIN_SECRET = process.env.ADMIN_SECRET;
@@ -151,6 +152,7 @@ app.get('/api/currently-playing', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
-  console.log(`Login at http://localhost:${PORT}/login`);
+  const host = process.env.RENDER ? process.env.RENDER_EXTERNAL_URL : `http://localhost:${PORT}`;
+  console.log(`Server running at ${host}`);
+  console.log(`Login at ${host}/login`);
 });
