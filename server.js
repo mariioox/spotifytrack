@@ -4,6 +4,7 @@ const axios = require('axios');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
+const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,6 +22,16 @@ const REDIRECT_URI = process.env.REDIRECT_URI ||
 const BASE_URL = REDIRECT_URI.split('?')[0];
 
 const ADMIN_SECRET = process.env.ADMIN_SECRET;
+
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
+let supabase = null;
+if (SUPABASE_URL && SUPABASE_SERVICE_KEY) {
+  supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, { auth: { persistSession: false } });
+  console.log('Supabase connected');
+} else {
+  console.log('Supabase not configured — history/stats disabled');
+}
 
 let tokens = {};
 try {
@@ -63,6 +74,27 @@ async function refreshAccessToken() {
   } catch (err) {
     console.error('Failed to refresh token:', err.response?.data || err.message);
     return null;
+  }
+}
+
+let lastLoggedTrackId = null;
+
+async function logTrackToSupabase(track, isPlaying) {
+  if (!supabase) return;
+  try {
+    const { error } = await supabase.from('tracks').insert({
+      track_id: track.id,
+      track_name: track.name,
+      artists: track.artists,
+      album: track.album,
+      album_image: track.album_image,
+      duration_ms: track.duration_ms,
+      played_at: new Date().toISOString(),
+      is_playing: isPlaying,
+    });
+    if (error) console.error('Supabase insert error:', error.message);
+  } catch (e) {
+    console.error('Supabase error:', e.message);
   }
 }
 
@@ -129,18 +161,25 @@ async function getCurrentlyPlaying() {
     if (!res.data || !res.data.item) return { error: 'no_track_data', detail: !res.data ? 'no_data' : 'no_item' };
 
     const item = res.data.item;
+    const trackData = {
+      id: item.id,
+      name: item.name,
+      artists: item.artists.map(a => a.name),
+      album: item.album.name,
+      album_image: item.album.images?.[0]?.url || null,
+      duration_ms: item.duration_ms,
+      url: item.external_urls?.spotify || null,
+    };
+
+    if (trackData.id !== lastLoggedTrackId) {
+      lastLoggedTrackId = trackData.id;
+      logTrackToSupabase(trackData, res.data.is_playing);
+    }
+
     return {
       is_playing: res.data.is_playing,
       progress_ms: res.data.progress_ms,
-      track: {
-        id: item.id,
-        name: item.name,
-        artists: item.artists.map(a => a.name),
-        album: item.album.name,
-        album_image: item.album.images?.[0]?.url || null,
-        duration_ms: item.duration_ms,
-        url: item.external_urls?.spotify || null,
-      },
+      track: trackData,
     };
   } catch (err) {
     if (err.response?.status === 401) {
@@ -156,7 +195,7 @@ async function getCurrentlyPlaying() {
 }
 
 app.get('/api/status', (req, res) => {
-  res.json({ authenticated: !!tokens.access_token });
+  res.json({ authenticated: !!tokens.access_token, supabase: !!supabase });
 });
 
 app.get('/api/auth-url', (req, res) => {
@@ -168,6 +207,52 @@ app.get('/api/auth-url', (req, res) => {
 app.get('/api/currently-playing', async (req, res) => {
   const data = await getCurrentlyPlaying();
   res.json(data);
+});
+
+app.get('/api/history', async (req, res) => {
+  if (!supabase) return res.json([]);
+  const limit = Math.min(parseInt(req.query.limit) || 15, 50);
+  const { data, error } = await supabase
+    .from('tracks')
+    .select('*')
+    .order('played_at', { ascending: false })
+    .limit(limit);
+  if (error) return res.status(500).json({ error: error.message });
+  const rows = (data || []).map(r => ({
+    ...r,
+    artists: typeof r.artists === 'string' ? JSON.parse(r.artists) : r.artists,
+  }));
+  res.json(rows);
+});
+
+app.get('/api/stats', async (req, res) => {
+  if (!supabase) return res.json({ today: 0, total: 0 });
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const { count: todayCount, error: err1 } = await supabase
+    .from('tracks')
+    .select('*', { count: 'exact', head: true })
+    .gte('played_at', today.toISOString());
+
+  const { count: totalCount, error: err2 } = await supabase
+    .from('tracks')
+    .select('*', { count: 'exact', head: true });
+
+  if (err1 || err2) return res.status(500).json({ error: 'stats error' });
+
+  const { data: lastSeen } = await supabase
+    .from('tracks')
+    .select('played_at')
+    .order('played_at', { ascending: false })
+    .limit(1);
+
+  res.json({
+    today: todayCount || 0,
+    total: totalCount || 0,
+    last_seen: lastSeen?.[0]?.played_at || null,
+  });
 });
 
 app.listen(PORT, () => {
