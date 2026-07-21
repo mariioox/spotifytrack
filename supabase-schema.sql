@@ -25,3 +25,17 @@ create policy "Service role can do everything"
   on tracks
   using (true)
   with check (true);
+
+-- Table for persisting Spotify OAuth tokens across server restarts
+create table if not exists tokens (
+  id integer primary key default 1,
+  access_token text,
+  refresh_token text,
+  updated_at timestamptz default now(),
+  constraint single_row check (id = 1)
+);
+
+create policy "Service role can do everything on tokens"
+  on tokens
+  using (true)
+  with check (true);

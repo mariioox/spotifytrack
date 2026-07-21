@@ -49,6 +49,37 @@ function saveTokens(data) {
   } catch (e) {
     console.error('Failed to save tokens:', e.message);
   }
+  saveTokensToSupabase(data);
+}
+
+function saveTokensToSupabase(data) {
+  if (!supabase) return;
+  supabase.from('tokens').upsert({
+    id: 1,
+    access_token: data.access_token,
+    refresh_token: data.refresh_token,
+    updated_at: new Date().toISOString(),
+  }).then(({ error }) => {
+    if (error) console.error('Failed to save tokens to Supabase:', error.message);
+  });
+}
+
+async function loadTokensFromSupabase() {
+  if (!supabase) return;
+  try {
+    const { data, error } = await supabase
+      .from('tokens')
+      .select('access_token, refresh_token')
+      .eq('id', 1)
+      .single();
+    if (!error && data && data.access_token) {
+      tokens.access_token = data.access_token;
+      tokens.refresh_token = data.refresh_token;
+      console.log('Loaded tokens from Supabase');
+    }
+  } catch (e) {
+    console.error('Failed to load tokens from Supabase:', e.message);
+  }
 }
 
 async function refreshAccessToken() {
@@ -259,4 +290,7 @@ app.listen(PORT, () => {
   const host = process.env.RENDER ? process.env.RENDER_EXTERNAL_URL : `http://localhost:${PORT}`;
   console.log(`Server running at ${host}`);
   console.log(`Login at ${host}/login`);
+  loadTokensFromSupabase().then(() => {
+    console.log(`Authenticated: ${!!tokens.access_token}`);
+  });
 });
