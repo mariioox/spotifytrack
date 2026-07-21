@@ -21,6 +21,7 @@ alter table tracks enable row level security;
 
 -- Allow the service_role key (used by the server) full access
 -- RLS is bypassed for service_role, but we add a policy for good measure
+drop policy if exists "Service role can do everything" on tracks;
 create policy "Service role can do everything"
   on tracks
   using (true)
@@ -35,6 +36,7 @@ create table if not exists tokens (
   constraint single_row check (id = 1)
 );
 
+drop policy if exists "Service role can do everything on tokens" on tokens;
 create policy "Service role can do everything on tokens"
   on tokens
   using (true)

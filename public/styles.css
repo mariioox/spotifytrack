@@ -17,18 +17,18 @@
 }
 
 .light {
-  --bg: #f5f0eb;
-  --bg2: #ede8e2;
-  --fg: #1a1a1a;
-  --muted: #999;
-  --sub: #777;
-  --card: rgba(255,255,255,0.78);
+  --bg: #faf5f0;
+  --bg2: #f0ece6;
+  --fg: #2a2218;
+  --muted: #b0a090;
+  --sub: #8a7a6a;
+  --card: rgba(255,252,248,0.82);
   --card-border: rgba(0,0,0,0.06);
-  --card-shadow: rgba(0,0,0,0.08);
+  --card-shadow: rgba(0,0,0,0.06);
   --spotify: #1db954;
-  --error: #bbb;
+  --error: #ccc;
   --scrollbar: #ddd;
-  --overlay: rgba(255,255,255,0.3);
+  --overlay: rgba(255,252,248,0.35);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -110,6 +110,31 @@ body {
   align-items: center;
 }
 
+/* Floating music notes */
+.note {
+  position: fixed;
+  font-size: 1.3rem;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.1;
+  animation: floatNote 10s ease-in-out infinite;
+  color: var(--fg);
+  will-change: transform;
+}
+.light .note { opacity: 0.07; }
+.note:nth-child(2) { top: 10%; left: 6%; animation-delay: -2s; font-size: 1rem; }
+.note:nth-child(3) { top: 78%; left: 88%; animation-delay: -5s; font-size: 1.5rem; }
+.note:nth-child(4) { top: 18%; left: 85%; animation-delay: -7s; font-size: 0.8rem; }
+.note:nth-child(5) { top: 82%; left: 8%; animation-delay: -3s; font-size: 1.1rem; }
+.note:nth-child(6) { top: 35%; left: 3%; animation-delay: -8s; font-size: 0.9rem; }
+.note:nth-child(7) { top: 55%; left: 92%; animation-delay: -4s; font-size: 1.2rem; }
+
+@keyframes floatNote {
+  0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+  25% { transform: translateY(-18px) rotate(6deg) scale(1.05); }
+  75% { transform: translateY(10px) rotate(-4deg) scale(0.95); }
+}
+
 /* Header */
 .header {
   text-align: center;
@@ -123,6 +148,11 @@ body {
   text-transform: uppercase;
   letter-spacing: 3px;
   margin-bottom: 0.25rem;
+  animation: softPulse 3s ease-in-out infinite;
+}
+@keyframes softPulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
 }
 .header-name {
   font-size: 2rem;
@@ -167,6 +197,14 @@ body {
 @keyframes trackIn { 0% { opacity: 0; transform: scale(0.92); } 100% { opacity: 1; transform: scale(1); } }
 @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(200%); } }
 @keyframes ringPulse { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(1.2); opacity: 0; } }
+@keyframes bearBounce {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.12); }
+}
+@keyframes albumFadeIn {
+  from { opacity: 0; transform: scale(0.88); }
+  to { opacity: 1; transform: scale(1); }
+}
 
 /* Login */
 .login-state { text-align: center; }
@@ -280,8 +318,11 @@ body {
   box-shadow: 0 0 25px rgba(var(--glow-rgb),0.1), 0 4px 20px var(--card-shadow);
   animation: spin 8s linear infinite;
   z-index: 1;
+  transition: opacity 0.5s ease;
 }
 .album-art.paused { animation: none; }
+.album-art.fade-out { opacity: 0; }
+.album-art.fade-in { animation: albumFadeIn 0.5s ease-out; }
 
 .vinyl-grooves {
   position: absolute;
@@ -307,7 +348,17 @@ body {
   align-items: center;
   justify-content: center;
   font-size: 0.9rem;
-  transition: background 0.4s, border-color 0.3s;
+  transition: background 0.4s, border-color 0.3s, box-shadow 0.4s;
+}
+.vinyl-center.dancing {
+  animation: bearBounce 1.2s ease-in-out infinite;
+}
+.vinyl-center.glowing {
+  box-shadow: 0 0 16px rgba(var(--glow-rgb),0.35), 0 0 40px rgba(var(--glow-rgb),0.12);
+}
+
+.art-wrapper.parallax {
+  transition: transform 0.15s ease-out;
 }
 
 /* Track info */
@@ -380,14 +431,12 @@ body {
 }
 .paused .progress-shimmer { display: none; }
 .progress-bar:hover .progress-fill::after {
-  content: '';
+  content: '🐾';
   position: absolute;
-  right: -4px;
-  top: -3.5px;
-  width: 11px; height: 11px;
-  background: var(--fg);
-  border-radius: 50%;
-  box-shadow: 0 0 8px rgba(var(--glow-rgb),0.3);
+  right: -8px;
+  top: -9px;
+  font-size: 0.85rem;
+  filter: drop-shadow(0 0 6px rgba(var(--glow-rgb),0.3));
 }
 .time {
   display: flex;
@@ -575,12 +624,14 @@ body {
 
 /* Responsive */
 @media (max-width: 440px) {
-  .scroll-container { padding: 1.2rem 0.8rem 2rem; }
-  .glass-card { padding: 1.5rem 1.2rem 1.4rem; border-radius: 20px; }
+  .scroll-container { padding: 0; }
+  .glass-card { max-width: 100%; border-radius: 0; padding: 1.5rem 1.2rem 1.4rem; border-left: none; border-right: none; }
   .art-section { width: 160px; }
   .art-wrapper { width: 160px; height: 160px; }
   .header-name { font-size: 1.6rem; }
   .track-name { font-size: 1.05rem; }
   .stats-bar { gap: 1rem; flex-wrap: wrap; }
   .stat-item { font-size: 0.68rem; }
+  .header { margin-bottom: 1rem; }
+  .history-section { max-width: 100%; }
 }

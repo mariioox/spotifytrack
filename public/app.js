@@ -144,23 +144,29 @@ function setupMarquee() {
   });
 }
 
-let vizTimer = null;
+let vizRaf = null;
+let eqBarTargets = [];
 function startVisualizer() {
-  if (vizTimer) return;
+  if (vizRaf) return;
   const bars = $('trackEqualizer').querySelectorAll('.eq-bar');
+  eqBarTargets = Array.from(bars).map(() => 3 + Math.random() * 14);
   function step() {
     if (!isPlayingLocally || localProgress >= trackDuration) {
-      bars.forEach(b => b.style.height = '3px');
-      vizTimer = setTimeout(step, 300);
+      bars.forEach(b => { b.style.height = '3px'; });
+      vizRaf = requestAnimationFrame(step);
       return;
     }
-    bars.forEach(b => { b.style.height = (3 + Math.random() * 14) + 'px'; });
-    vizTimer = setTimeout(step, 120 + Math.random() * 180);
+    bars.forEach((b, i) => {
+      if (Math.random() < 0.08) eqBarTargets[i] = 3 + Math.random() * 14;
+      const cur = parseFloat(b.style.height) || 3;
+      b.style.height = (cur + (eqBarTargets[i] - cur) * 0.15) + 'px';
+    });
+    vizRaf = requestAnimationFrame(step);
   }
   step();
 }
 function stopVisualizer() {
-  if (vizTimer) { clearTimeout(vizTimer); vizTimer = null; }
+  if (vizRaf) { cancelAnimationFrame(vizRaf); vizRaf = null; }
 }
 
 function renderLogin() {
@@ -188,6 +194,10 @@ function renderTrack(data) {
   const paused = is_playing === false;
   trackDuration = track.duration_ms;
 
+  const center = $('vinylCenter');
+  center.classList.toggle('dancing', !paused);
+  center.classList.toggle('glowing', !paused);
+
   if (track.id !== currentTrackId) {
     currentTrackId = track.id;
     showView('trackView');
@@ -196,8 +206,16 @@ function renderTrack(data) {
     $('artWrapper').classList.toggle('paused', paused);
     const art = $('albumArt');
     art.classList.toggle('paused', paused);
+
     if (track.album_image) {
-      art.src = track.album_image;
+      art.classList.add('fade-out');
+      const prevBg = $('bgBlur').style.backgroundImage;
+      setTimeout(() => {
+        art.src = track.album_image;
+        art.classList.remove('fade-out');
+        art.classList.add('fade-in');
+        setTimeout(() => art.classList.remove('fade-in'), 500);
+      }, 400);
       setBackgroundImage(track.album_image);
       extractAlbumColor(track.album_image);
       art.onerror = function() {
@@ -220,9 +238,11 @@ function renderTrack(data) {
 
   if (is_playing) {
     startLocalProgress(progress_ms);
+    $('vinylCenter').textContent = '🧸';
   } else {
     stopLocalProgress();
     updateProgressDisplay(progress_ms);
+    $('vinylCenter').textContent = '💤';
   }
 }
 
@@ -286,6 +306,21 @@ async function poll() {
     return renderError(data.detail || data.error);
   }
   renderNotPlaying();
+}
+
+const card = document.querySelector('.glass-card');
+const parallaxEl = $('artWrapper');
+if (card && parallaxEl) {
+  card.addEventListener('mousemove', e => {
+    const rect = card.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    parallaxEl.style.transform = `rotateY(${x * 6}deg) rotateX(${y * -4}deg)`;
+    parallaxEl.classList.add('parallax');
+  });
+  card.addEventListener('mouseleave', () => {
+    parallaxEl.style.transform = '';
+  });
 }
 
 showView('loginView');
