@@ -6,7 +6,6 @@ const fs = require('fs');
 const path = require('path');
 
 const app = express();
-app.use(express.json());
 const PORT = process.env.PORT || 3000;
 const TOKEN_FILE = path.join(__dirname, '.spotify-tokens.json');
 
@@ -164,21 +163,6 @@ app.get('/api/auth-url', (req, res) => {
   if (!ADMIN_SECRET) return res.status(500).json({ error: 'ADMIN_SECRET not configured' });
   const host = process.env.RENDER ? process.env.RENDER_EXTERNAL_URL : `http://localhost:${PORT}`;
   res.json({ url: `${host}/login?admin=${ADMIN_SECRET}` });
-});
-
-app.get('/api/tokens', (req, res) => {
-  if (!tokens.access_token) return res.json({ error: 'no_token' });
-  res.json({ access_token: tokens.access_token, refresh_token: tokens.refresh_token || null });
-});
-
-app.post('/api/tokens', (req, res) => {
-  const { access_token, refresh_token } = req.body || {};
-  if (access_token) {
-    saveTokens({ access_token, refresh_token: refresh_token || tokens.refresh_token });
-    res.json({ ok: true });
-  } else {
-    res.status(400).json({ error: 'missing access_token' });
-  }
 });
 
 app.get('/api/currently-playing', async (req, res) => {

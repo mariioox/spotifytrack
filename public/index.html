@@ -534,30 +534,6 @@
       }
     }
 
-    const TOKENS_KEY = 'spotify_tokens';
-
-    async function restoreTokens() {
-      const raw = localStorage.getItem(TOKENS_KEY);
-      if (!raw) return;
-      try {
-        const t = JSON.parse(raw);
-        if (t.access_token) {
-          await fetch('/api/tokens', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(t),
-          });
-        }
-      } catch(e) {}
-    }
-
-    async function saveTokensToStorage() {
-      const res = await fetchJSON('/api/tokens');
-      if (res && res.access_token) {
-        localStorage.setItem(TOKENS_KEY, JSON.stringify({ access_token: res.access_token, refresh_token: res.refresh_token }));
-      }
-    }
-
     let currentTrackId = null;
     let trackDuration = 0;
     let localProgress = 0;
@@ -565,7 +541,6 @@
     let progressTime = 0;
     let isPlayingLocally = false;
     let rafId = null;
-    let tokensSaved = false;
 
     function startLocalProgress(progress_ms) {
       progressBase = progress_ms;
@@ -721,33 +696,18 @@
 
     async function poll() {
       const data = await fetchJSON('/api/currently-playing');
-      if (data && data.track) {
-        if (!tokensSaved) {
-          saveTokensToStorage();
-          tokensSaved = true;
-        }
-        return renderTrack(data);
-      }
-      if (data && data.error === 'no_token') {
-        tokensSaved = false;
-        return renderLogin();
-      }
-      if (data && data.error && data.error !== 'no_track_204' && data.error !== 'no_track_data') {
-        tokensSaved = false;
+      if (!data) return renderError('Could not reach the server 🧸');
+      if (data.error === 'no_token') return renderLogin();
+      if (data.track) return renderTrack(data);
+      if (data.error && data.error !== 'no_track_204' && data.error !== 'no_track_data') {
         return renderError(data.detail || data.error);
       }
-      if (data === null) return renderError('Could not reach the server 🧸');
       renderNotPlaying();
     }
 
-    async function init() {
-      await restoreTokens();
-      poll();
-      setInterval(poll, 3000);
-    }
-
     showView('loginView');
-    init();
+    poll();
+    setInterval(poll, 3000);
   </script>
 </body>
 </html>
