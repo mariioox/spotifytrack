@@ -294,7 +294,6 @@ app.listen(PORT, () => {
     console.log(`Authenticated: ${!!tokens.access_token}`);
     if (tokens.access_token) {
       setInterval(() => getCurrentlyPlaying().catch(() => {}), 15000);
-      console.log('Background tracking started (every 15s)');
     }
   });
 });
